@@ -7,73 +7,150 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { loadState, saveState } from 'utils/helpers/localStorage';
 import { Users } from 'pages/user';
+import { TMDB_API_KEY, TMDB_API_VERSION } from 'config/tmdb';
+import tmdbAPI from 'services/tmdbAPI';
 // import { userService, alertService } from 'services';
 
 export default Login;
 
 function Login() {
-    const router = useRouter();
+  const router = useRouter();
 
-    // form validation rules 
-    const validationSchema = Yup.object().shape({
-        username: Yup.string().required('Username is required'),
-        password: Yup.string().required('Password is required')
-    });
-    const formOptions = { resolver: yupResolver(validationSchema) };
+  // form validation rules 
+  const validationSchema = Yup.object().shape({
+    username: Yup.string().required('Username is required'),
+    password: Yup.string().required('Password is required')
+  });
+  const formOptions = { resolver: yupResolver(validationSchema) };
 
-    // get functions to build form with useForm() hook
-    const { register, handleSubmit, formState } = useForm(formOptions);
-    const { errors } = formState;
-    const [isLogin, setIsLogin] = useState(true);
-    const [failLogin, setFailLogin] = useState();
-    const [users, setUsers] = useState();
+  // get functions to build form with useForm() hook
+  const { register, handleSubmit, formState } = useForm(formOptions);
+  const { errors } = formState;
+  const [isLogin, setIsLogin] = useState(true);
+  const [failLogin, setFailLogin] = useState();
+  const [users, setUsers] = useState();
 
-    useEffect(() => {
-        setUsers(Users);
-    }, [])
-
-    const onSubmit = ({ username, password }) => {
-        console.log(username + '|' + password)
-        console.log(users)
-        const {
-            request_token: requestToken = '',
-            access_token: initialAccessToken = '',
-            account_id: initialAccountId = '',
-            access_token_manual: accessTokenManual = '',
-            username: usernameLocal = '',
-            password: passwordLocal = ''
-        } = loadState() || {};
-        const result = users.find(e => {
-            return e.username == username && e.password == password;
-        });
-        if (result) {
+  useEffect(() => {
+    const {
+      request_token: requestToken = '',
+      access_token: initialAccessToken = '',
+      account_id: initialAccountId = '',
+      access_token_manual: accessTokenManual = '',
+      username: usernameLocal = '',
+      password: passwordLocal = ''
+    } = loadState() || {};
+    (async () => {
+      try {
+        if (!requestToken) {
+          const responseRequestToken = await tmdbAPI.get(`/${TMDB_API_VERSION}/authentication/token/new?api_key=${TMDB_API_KEY}`);
+          const authen = responseRequestToken.data;
+          if (authen.success) {
+            console.log(authen.request_token);
             saveState({
-                access_token_manual: result.accessTokenLocal,
-                username: username,
-                password: password
+              request_token: authen.request_token,
+              account_id: null,
+              access_token: null,
+            });
+
+          }
+        }
+
+      } catch (error) {
+        console.log('Error Login Page: ' + error);
+      }
+    })();
+  }, [])
+
+  // useEffect(() => {
+  //   if (failLogin) {
+  //     (async () => {
+  //       try {
+  //         const responseRequestToken = await tmdbAPI.get(`/${TMDB_API_VERSION}/authentication/token/new?api_key=${TMDB_API_KEY}`);
+  //         const authen = responseRequestToken.data;
+  //         if (authen.success) {
+  //           console.log(authen.request_token);
+  //           saveState({
+  //             request_token: authen.request_token,
+  //             account_id: null,
+  //             access_token: null,
+  //           });
+  //         }
+  //         setFailLogin(null);
+  //       } catch (error) {
+  //         console.log('Error Login Page: ' + error);
+  //       }
+  //     })();
+  //   }
+  // }, [failLogin]);
+
+  const onSubmit = ({ username, password }) => {
+    console.log(username + '|' + password)
+    const {
+      request_token: requestToken = '',
+      access_token: initialAccessToken = '',
+      account_id: initialAccountId = '',
+      access_token_manual: accessTokenManual = '',
+      username: usernameLocal = '',
+      password: passwordLocal = ''
+    } = loadState() || {};
+    (async () => {
+      try {
+        const response = await tmdbAPI.post(`/${TMDB_API_VERSION}/authentication/token/validate_with_login?api_key=${TMDB_API_KEY}`, {
+          request_token: requestToken,
+          username: username,
+          password: password
+
+        });
+        const preSession = response.data;
+        if (preSession.success) {
+          const responseSession = await tmdbAPI.get(`/${TMDB_API_VERSION}/authentication/session/new??api_key=${TMDB_API_KEY}&request_token=${requestToken}`);
+          const sessionResponse = responseSession.data;
+          if (sessionResponse.success) {
+            console.log(sessionResponse.session_id);
+            saveState({
+              request_token: requestToken,
+              account_id: null,
+              access_token: null,
+              session_id: sessionResponse.session_id
             });
             router.push('http://localhost:8080/?category=Popular&page=1')
-        } else {
-            setFailLogin('Username or Password is incorrect')
+          }
         }
-    }
 
-    return (
-        <>
-            <div className="login-page">
-                <div className="form">
-                    <form className="login-form" onSubmit={handleSubmit(onSubmit)}>
-                        <input type="text" placeholder="username" {...register('username')} />
-                        <div className="invalid-feedback">{errors.username?.message}</div>
-                        <input type="password" placeholder="password" {...register('password')} />
-                        <div className="invalid-feedback">{errors.password?.message}</div>
-                        <button onSubmit={onSubmit}>login</button>
-                        {failLogin && <div className="invalid-feedback">{failLogin}</div>}
-                        <div className="message">Not registered? <Link href={'/register'}>Create an account</Link></div>
-                    </form>
-                </div>
-            </div>
-            <style jsx>{`
+      } catch (error) {
+        console.log('Error Login Page: ' + error);
+        const responseRequestToken = await tmdbAPI.get(`/${TMDB_API_VERSION}/authentication/token/new?api_key=${TMDB_API_KEY}`);
+        const authen = responseRequestToken.data;
+        if (authen.success) {
+          console.log(authen.request_token);
+          saveState({
+            request_token: authen.request_token,
+            account_id: null,
+            access_token: null,
+          });
+
+        }
+        setFailLogin('Username or Password is incorrect')
+      }
+    })();
+  }
+
+  return (
+    <>
+      <div className="login-page">
+        <div className="form">
+          <form className="login-form" onSubmit={handleSubmit(onSubmit)}>
+            <input type="text" placeholder="username" {...register('username')} />
+            <div className="invalid-feedback">{errors.username?.message}</div>
+            <input type="password" placeholder="password" {...register('password')} />
+            <div className="invalid-feedback">{errors.password?.message}</div>
+            <button onSubmit={onSubmit}>login</button>
+            {failLogin && <div className="invalid-feedback">{failLogin}</div>}
+            <div className="message">Not registered? <Link href={'/register'}>Create an account</Link></div>
+          </form>
+        </div>
+      </div>
+      <style jsx>{`
                 .login-page {
                     width: 360px;
                     padding: 8% 0 0;
@@ -174,6 +251,6 @@ function Login() {
                     -moz-osx-font-smoothing: grayscale;      
                   }
             `}</style>
-        </>
-    );
+    </>
+  );
 }

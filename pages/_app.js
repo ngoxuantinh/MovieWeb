@@ -13,42 +13,47 @@ import AuthContext from 'contexts/auth-context';
 import { loadState, saveState } from 'utils/helpers/localStorage';
 import { useRouter } from 'next/router';
 import { TMDB_STATIC } from './user';
+import { TMDB_API_KEY, TMDB_API_NEW_VERSION, TMDB_API_VERSION } from 'config/tmdb';
+import tmdbAPI from 'services/tmdbAPI';
+import STATUSES from 'utils/constants/statuses';
 
 const MyApp = ({ Component, pageProps }) => {
   const store = useStore(pageProps.initialReduxState);
   const router = useRouter()
 
   useEffect(() => {
-    const {
-      request_token: requestToken = '',
-      access_token: initialAccessToken = '',
-      account_id: initialAccountId = '',
-      access_token_manual: accessTokenManual = ''
-    } = loadState() || {};
-
-    if (!initialAccessToken) {
-      saveState({
-        request_token: '',
-        access_token: TMDB_STATIC.access_token,
-        account_id: TMDB_STATIC.account_id
-      });
-    }
-
-    if (!accessTokenManual) {
-      router.push('/login')
-    }
+    // (async () => {
+    //   try {
+    //     const response = await tmdbAPI.get(`/${TMDB_API_VERSION}/authentication/token/new?api_key=${TMDB_API_KEY}`);
+    //     const authen = response.data;
+    //     if (authen.success) {
+    //       console.log(authen.request_token);
+    //       saveState({
+    //         request_token: authen.request_token,
+    //         account_id: null,
+    //         access_token: null,
+    //       });
+    //       router.push('/login')
+    //     } else {
+    //       console.log(authen);
+    //     }
+    //   } catch (error) {
+    //     console.log('[AuthProvider useEffect] error => ', error);
+    //   }
+    // })();
+    router.push('/login')
   }, []);
 
   return (
     <>
       <Provider store={store}>
         <ThemeProvider>
-          <AuthProvider>
-            <Layout>
-              <Component {...pageProps} />
-            </Layout>
+          {/* <AuthProvider> */}
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
 
-          </AuthProvider>
+          {/* </AuthProvider> */}
         </ThemeProvider>
       </Provider>
       <style jsx global>

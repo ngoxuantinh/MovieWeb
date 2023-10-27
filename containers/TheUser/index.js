@@ -10,7 +10,7 @@ import LINKS from 'utils/constants/links';
 import QUERY_PARAMS from 'utils/constants/query-params';
 import COLOR_TYPES from 'utils/constants/color-types';
 import { useRouter } from 'next/router';
-import { loadState } from 'utils/helpers/localStorage';
+import { loadState, saveState } from 'utils/helpers/localStorage';
 
 /**
  * TODO:
@@ -32,20 +32,20 @@ const TheUser = ({
     request_token: requestToken = '',
     access_token: initialAccessToken = '',
     account_id: initialAccountId = '',
-    access_token_manual: accessTokenManual = '',
-    username: usernameLocal = '',
-    password: passwordLocal = ''
+    session_id: session_id
   } = loadState() || {};
   const router = useRouter();
 
   const logoutManual = () => {
-    logout();
+    saveState({
+      session_id: ''
+    });
     router.push('/login');
   }
 
   return (
     <>
-      {accessTokenManual ? (
+      {session_id ? (
         <DropdownMenu
           align='right'
           DropElement={() => (

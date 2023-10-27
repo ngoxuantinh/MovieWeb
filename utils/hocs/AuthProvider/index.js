@@ -50,6 +50,7 @@ const AuthProvider = ({ children }) => {
         const accessTokenResults = response.data;
 
         const accessToken = accessTokenResults.access_token;
+        console.log('access_token ' + accessTokenResults.access_token);
         const accountId = accessTokenResults.account_id;
         saveState({
           request_token: '',
