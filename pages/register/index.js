@@ -7,82 +7,86 @@ import Link from 'next/link';
 import { saveState } from "utils/helpers/localStorage";
 import { useEffect, useState } from "react";
 import { TMDB_API_BASE_URL, TMDB_API_KEY, TMDB_API_VERSION } from "config/tmdb";
-import { Users } from "pages/user";
-// import { userService, alertService } from "services";
+const Users = [
+  {
+    username: 'tinhnx',
+    password: '123123',
+    accessTokenLocal: 'a64d3dd0479ab3a7342badc3f967012f85d90f92b7435f53718098f9f44e1aa83bbe079f0235413a5644d8dd2ec26e10'
+  }
+]
 
-export default Register;
 
 function Register() {
-    const router = useRouter();
+  const router = useRouter();
 
-    // form validation rules
-    const validationSchema = Yup.object().shape({
-        username: Yup.string().required("Username is required"),
-        password: Yup.string()
-            .required("Password is required")
-            .min(6, "Password must be at least 6 characters"),
-        mail: Yup.string().required("Mail is required").email("Not valid")
+  // form validation rules
+  const validationSchema = Yup.object().shape({
+    username: Yup.string().required("Username is required"),
+    password: Yup.string()
+      .required("Password is required")
+      .min(6, "Password must be at least 6 characters"),
+    mail: Yup.string().required("Mail is required").email("Not valid")
+  });
+  const formOptions = { resolver: yupResolver(validationSchema) };
+
+  // get functions to build form with useForm() hook
+  const { register, handleSubmit, formState } = useForm(formOptions);
+  const { errors } = formState;
+  const [users, setUsers] = useState();
+
+  useEffect(() => {
+    setUsers(Users);
+  }, [])
+  const onSubmit = (user) => {
+    console.log('user,' + user.username + '|' + user.password)
+    console.log(users)
+    const result = users.find(e => {
+      return e.username == user.username;
     });
-    const formOptions = { resolver: yupResolver(validationSchema) };
+    console.log(result)
+    if (!result) {
+      require('crypto').randomBytes(48, function (err, buffer) {
+        var token = buffer.toString('hex');
 
-    // get functions to build form with useForm() hook
-    const { register, handleSubmit, formState } = useForm(formOptions);
-    const { errors } = formState;
-    const [users, setUsers] = useState();
-
-    useEffect(() => {
-        setUsers(Users);
-    }, [])
-    const onSubmit = (user) => {
-        console.log('user,' + user.username + '|' + user.password)
-        console.log(users)
-        const result = users.find(e => {
-            return e.username == user.username;
+        saveState({
+          access_token_manual: token,
+          username: user.username,
+          password: user.password
         });
-        console.log(result)
-        if (!result) {
-            require('crypto').randomBytes(48, function (err, buffer) {
-                var token = buffer.toString('hex');
+      });
 
-                saveState({
-                    access_token_manual: token,
-                    username: user.username,
-                    password: user.password
-                });
-            });
+      router.push('http://localhost:8080/?category=Popular&page=1')
+    } else {
+      require('crypto').randomBytes(48, function (err, buffer) {
+        var token = buffer.toString('hex');
+        Users.push({
+          username: user.username,
+          password: user.password,
+          access_token_manual: token
 
-            router.push('http://localhost:8080/?category=Popular&page=1')
-        } else {
-            require('crypto').randomBytes(48, function (err, buffer) {
-                var token = buffer.toString('hex');
-                Users.push({
-                    username: user.username,
-                    password: user.password,
-                    access_token_manual: token
+        })
+      });
 
-                })
-            });
-
-        }
     }
+  }
 
-    return (
-        <>
-            <div className="login-page">
-                <div className="form">
-                    <form className="register-form" onSubmit={handleSubmit(onSubmit)}>
-                        <input type="text" placeholder="username" {...register('username')} />
-                        <div className="invalid-feedback">{errors.username?.message}</div>
-                        <input type="password" placeholder="password" {...register('password')} />
-                        <div className="invalid-feedback">{errors.password?.message}</div>
-                        <input type="text" placeholder="email address" {...register('mail')} />
-                        <div className="invalid-feedback">{errors.mail?.message}</div>
-                        <button>create</button>
-                        <div className="message">Already registered? <Link href={'/login'}>Sign In</Link></div>
-                    </form>
-                </div>
-            </div>
-            <style jsx>{`
+  return (
+    <>
+      <div className="login-page">
+        <div className="form">
+          <form className="register-form" onSubmit={handleSubmit(onSubmit)}>
+            <input type="text" placeholder="username" {...register('username')} />
+            <div className="invalid-feedback">{errors.username?.message}</div>
+            <input type="password" placeholder="password" {...register('password')} />
+            <div className="invalid-feedback">{errors.password?.message}</div>
+            <input type="text" placeholder="email address" {...register('mail')} />
+            <div className="invalid-feedback">{errors.mail?.message}</div>
+            <button>create</button>
+            <div className="message">Already registered? <Link href={'/login'}>Sign In</Link></div>
+          </form>
+        </div>
+      </div>
+      <style jsx>{`
                 .login-page {
                     width: 360px;
                     padding: 8% 0 0;
@@ -183,6 +187,8 @@ function Register() {
                     -moz-osx-font-smoothing: grayscale;      
                   }
             `}</style>
-        </>
-    );
+    </>
+  );
 }
+
+export default Register;

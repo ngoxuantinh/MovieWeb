@@ -12,7 +12,6 @@ import { STORAGE_KEY } from 'config/app-level';
 import AuthContext from 'contexts/auth-context';
 import { loadState, saveState } from 'utils/helpers/localStorage';
 import { useRouter } from 'next/router';
-import { TMDB_STATIC } from './user';
 import { TMDB_API_KEY, TMDB_API_NEW_VERSION, TMDB_API_VERSION } from 'config/tmdb';
 import tmdbAPI from 'services/tmdbAPI';
 import STATUSES from 'utils/constants/statuses';

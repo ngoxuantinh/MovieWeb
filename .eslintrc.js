@@ -6,5 +6,6 @@ module.exports = {
     "react/display-name": 0,
     "no-unused-vars": 1,
     "react/no-unknown-property": 0,
+    "@next/next/no-document-import-in-page": "off"
   },
 };

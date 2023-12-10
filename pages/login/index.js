@@ -6,12 +6,15 @@ import * as Yup from 'yup';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { loadState, saveState } from 'utils/helpers/localStorage';
-import { Users } from 'pages/user';
 import { TMDB_API_KEY, TMDB_API_VERSION } from 'config/tmdb';
 import tmdbAPI from 'services/tmdbAPI';
-// import { userService, alertService } from 'services';
-
-export default Login;
+const Users = [
+  {
+    username: 'tinhnx',
+    password: '123123',
+    accessTokenLocal: 'a64d3dd0479ab3a7342badc3f967012f85d90f92b7435f53718098f9f44e1aa83bbe079f0235413a5644d8dd2ec26e10'
+  }
+]
 
 function Login() {
   const router = useRouter();
@@ -254,3 +257,5 @@ function Login() {
     </>
   );
 }
+
+export default Login;
