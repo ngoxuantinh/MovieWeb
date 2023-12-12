@@ -55,7 +55,7 @@ function Register() {
         });
       });
 
-      router.push('http://localhost:8080/?category=Popular&page=1')
+      router.push('/?category=Popular&page=1')
     } else {
       require('crypto').randomBytes(48, function (err, buffer) {
         var token = buffer.toString('hex');
