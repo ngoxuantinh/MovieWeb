@@ -116,7 +116,7 @@ function Login() {
               access_token: null,
               session_id: sessionResponse.session_id
             });
-            router.push('http://localhost:8080/?category=Popular&page=1')
+            router.push('/?category=Popular&page=1')
           }
         }
 
